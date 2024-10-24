@@ -17,9 +17,12 @@
         {
             returnUrl = url;
         }
+        else
+        {
+            returnUrl = "/";
+        }
     }
 }
-
 <h3>Login</h3>
 
 @if (!string.IsNullOrEmpty(errorMessage))

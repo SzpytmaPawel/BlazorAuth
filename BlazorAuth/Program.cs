@@ -1,8 +1,6 @@
-// Program.cs
 using BlazorAuth.Components;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
 namespace BlazorAuth
@@ -13,14 +11,13 @@ namespace BlazorAuth
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
-                    options.LoginPath = "/login"; 
+                    options.LoginPath = "/login";
                 });
 
             builder.Services.AddAuthorization();
@@ -46,7 +43,12 @@ namespace BlazorAuth
                 var form = await context.Request.ReadFormAsync();
                 string username = form["username"];
                 string password = form["password"];
-                string returnUrl = form["ReturnUrl"].FirstOrDefault() ?? "/";
+                string returnUrl = form["ReturnUrl"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(returnUrl))
+                {
+                    returnUrl = "/";
+                }
 
                 if (username == "user" && password == "password")
                 {
