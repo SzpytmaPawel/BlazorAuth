@@ -1,10 +1,28 @@
-﻿@* Components.Pages.Home.razor *@
+﻿@page "/"
 @attribute [Authorize]
-@page "/"
-
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Hello, @userName!</h1>
 
 Welcome to your new app.
+
+@code {
+    private string userName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            userName = user.Identity.Name;
+        }
+        else
+        {
+            userName = "Guest";
+        }
+    }
+}

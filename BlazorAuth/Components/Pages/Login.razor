@@ -1,51 +1,41 @@
-﻿@* Components.Pages.Login.razor *@
+﻿@page "/login"
+@inject NavigationManager NavigationManager
 
-@page "/login"
-@inject NavigationManager Navigation
-@inject AuthenticationStateProvider authProvider
+@code {
+    private string errorMessage;
+    private string returnUrl;
 
+    protected override void OnInitialized()
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var queryParams = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        if (queryParams.TryGetValue("error", out var error))
+        {
+            errorMessage = error;
+        }
+        if (queryParams.TryGetValue("ReturnUrl", out var url))
+        {
+            returnUrl = url;
+        }
+    }
+}
 
 <h3>Login</h3>
 
-<EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
 
+<form method="post" action="/process-login">
+    <input type="hidden" name="ReturnUrl" value="@returnUrl" />
     <div class="form-group">
         <label>Username:</label>
-        <InputText @bind-Value="loginModel.Username" class="form-control" />
+        <input name="username" class="form-control" required />
     </div>
     <div class="form-group">
         <label>Password:</label>
-        <InputText @bind-Value="loginModel.Password" type="password" class="form-control" />
+        <input name="password" type="password" class="form-control" required />
     </div>
     <button type="submit" class="btn btn-primary">Login</button>
-    @if (!string.IsNullOrEmpty(errorMessage))
-    {
-        <div class="alert alert-danger">@errorMessage</div>
-    }
-</EditForm>
-
-@code {
-    private LoginModel loginModel = new LoginModel();
-    private string errorMessage;
-    private string Name;
-
-    protected override async Task OnInitializedAsync()
-    {
-        AuthenticationState authState = await authProvider.GetAuthenticationStateAsync();
-        Name = authState.User.Identity.Name;
-
-
-    }
-    private async Task HandleLogin()
-    {
-
-    }
-
-    public class LoginModel
-    {
-        public string Username { get; set; }
-        public string Password { get; set; }
-    }
-} 
+</form>
