@@ -1,9 +1,9 @@
-﻿@page "/login"
-@inject NavigationManager NavigationManager
+﻿   @page "/login"
+   @inject NavigationManager NavigationManager
 
 @code {
-    private string errorMessage;
-    private string returnUrl;
+    private string errorMessage = string.Empty;
+    private string returnUrl = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -22,10 +22,10 @@
             returnUrl = "/";
         }
     }
-}
+   }
 <h3>Login</h3>
 
-@if (!string.IsNullOrEmpty(errorMessage))
+   @if (!string.IsNullOrEmpty(errorMessage))
 {
     <div class="alert alert-danger">@errorMessage</div>
 }

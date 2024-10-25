@@ -5,30 +5,30 @@ namespace BlazorAuth
 {
     public class CustomAuthenticationStateProvider : AuthenticationStateProvider
     {
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private ClaimsPrincipal _anonymous = new ClaimsPrincipal(new ClaimsIdentity());
 
-        private ClaimsPrincipal _currentUser;
-
-        public override Task<AuthenticationState> GetAuthenticationStateAsync()
+        public CustomAuthenticationStateProvider(IHttpContextAccessor httpContextAccessor)
         {
-            return Task.FromResult(new AuthenticationState(_currentUser ?? _anonymous));
+            _httpContextAccessor = httpContextAccessor;
         }
 
-        public void MarkUserAsAuthenticated(string userName)
+        public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(new[]
-            {
-                new Claim(ClaimTypes.Name, userName)
-            }, "apiauth"));
-
-            _currentUser = authenticatedUser;
-            NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(authenticatedUser)));
+            var user = _httpContextAccessor.HttpContext?.User ?? _anonymous;
+            return new AuthenticationState(user);
         }
 
-        public void MarkUserAsLoggedOut()
+        public void NotifyUserAuthentication(ClaimsPrincipal user)
         {
-            _currentUser = _anonymous;
-            NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(_anonymous)));
+            var authState = Task.FromResult(new AuthenticationState(user));
+            NotifyAuthenticationStateChanged(authState);
+        }
+
+        public void NotifyUserLogout()
+        {
+            var authState = Task.FromResult(new AuthenticationState(_anonymous));
+            NotifyAuthenticationStateChanged(authState);
         }
     }
 }

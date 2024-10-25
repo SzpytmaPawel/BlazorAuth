@@ -1,6 +1,7 @@
 using BlazorAuth.Components;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 
 namespace BlazorAuth
@@ -21,6 +22,9 @@ namespace BlazorAuth
                 });
 
             builder.Services.AddAuthorization();
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddScoped<CustomAuthenticationStateProvider>();
+            builder.Services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<CustomAuthenticationStateProvider>());
 
             var app = builder.Build();
 
@@ -31,9 +35,7 @@ namespace BlazorAuth
             }
 
             app.UseHttpsRedirection();
-
             app.UseStaticFiles();
-
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseAntiforgery();
@@ -58,6 +60,9 @@ namespace BlazorAuth
 
                     await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
+                    var authProvider = context.RequestServices.GetRequiredService<CustomAuthenticationStateProvider>();
+                    authProvider.NotifyUserAuthentication(principal);
+
                     context.Response.Redirect(returnUrl);
                 }
                 else
@@ -69,6 +74,10 @@ namespace BlazorAuth
             app.MapGet("/logout", async context =>
             {
                 await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+                var authProvider = context.RequestServices.GetRequiredService<CustomAuthenticationStateProvider>();
+                authProvider.NotifyUserLogout();
+
                 context.Response.Redirect("/login");
             });
 
